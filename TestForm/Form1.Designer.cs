@@ -32,18 +32,10 @@
             this.SuspendLayout();
             // 
             // schedulerControl1
-            // 
-            this.schedulerControl1.BarHeight = 0;
-            this.schedulerControl1.BarSpacing = 0;
-            this.schedulerControl1.HeaderFormat = null;
-            this.schedulerControl1.HeaderOneHeight = 0;
-            this.schedulerControl1.HeaderTwoHeight = 0;
-            this.schedulerControl1.Location = new System.Drawing.Point(13, 13);
-            this.schedulerControl1.MajorWidth = 0;
-            this.schedulerControl1.MinorWidth = 0;
+            //           
+            this.schedulerControl1.Location = new System.Drawing.Point(0, 0);
             this.schedulerControl1.Name = "schedulerControl1";
-            this.schedulerControl1.ShowTaskLabels = false;
-            this.schedulerControl1.Size = new System.Drawing.Size(150, 150);
+            this.schedulerControl1.Size = new System.Drawing.Size(800, 450);
             this.schedulerControl1.TabIndex = 0;
             // 
             // Form1

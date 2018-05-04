@@ -60,7 +60,7 @@ namespace HotelSchedulerControl.Chart
         /// <summary>
         /// Get the task to be painted
         /// </summary>
-        public Task Task { get; private set; }
+        public TimeBar Task { get; private set; }
         /// <summary>
         /// Get the rectangle bounds of the task
         /// </summary>
@@ -86,7 +86,7 @@ namespace HotelSchedulerControl.Chart
         /// <summary>
         /// Initialize a new instance of TaskPaintEventArgs with the editable default font and task paint format
         /// </summary>
-        public TaskPaintEventArgs(Graphics graphics, Rectangle clipRect, SchedulerControl chart, Task task, int row, Font font, TaskFormat format) // need to create a paint event for each task for custom painting
+        public TaskPaintEventArgs(Graphics graphics, Rectangle clipRect, SchedulerControl chart, TimeBar task, int row, Font font, TaskFormat format) // need to create a paint event for each task for custom painting
             : base(graphics, clipRect, chart)
         {
             this.Task = task;
