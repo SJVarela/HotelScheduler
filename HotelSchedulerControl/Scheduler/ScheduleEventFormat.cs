@@ -1,8 +1,8 @@
 ﻿using System.Drawing;
 
-namespace HotelSchedulerControl.Chart
+namespace HotelSchedulerControl.Scheduler
 {
-    public class TaskFormat
+    public class ScheduleEventFormat
     {
         /// <summary>
         /// Get or set Task outline color

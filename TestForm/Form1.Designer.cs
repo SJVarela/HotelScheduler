@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.schedulerControl1 = new HotelSchedulerControl.Chart.SchedulerControl();
+            this.schedulerControl1 = new HotelSchedulerControl.Scheduler.SchedulerControl();
             this.SuspendLayout();
             // 
             // schedulerControl1
@@ -52,7 +52,7 @@
 
         #endregion
 
-        private HotelSchedulerControl.Chart.SchedulerControl schedulerControl1;
+        private HotelSchedulerControl.Scheduler.SchedulerControl schedulerControl1;
     }
 }
 

@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace HotelSchedulerControl.Chart
+namespace HotelSchedulerControl.Scheduler
 {
     /// <summary>
     /// Provides data for ChartPaintEvent
@@ -60,15 +60,16 @@ namespace HotelSchedulerControl.Chart
         /// <summary>
         /// Get the task to be painted
         /// </summary>
-        public TimeBar Task { get; private set; }
+        public SchedulerEvent Task { get; private set; }
         /// <summary>
         /// Get the rectangle bounds of the task
         /// </summary>
         public RectangleF Rectangle
         {
             get
-            {
-                return new RectangleF(this.Chart.GetSpan(this.Task.Start), this.Row * this.Chart.BarSpacing + this.Chart.BarSpacing + this.Chart.HeaderOneHeight, this.Chart.GetSpan(this.Task.Duration), this.Chart.BarHeight);
+            {    
+                
+                return new RectangleF(Chart.GetSpan(this.Task.Start - Chart.Scheduler.Start), this.Row * this.Chart.BarSpacing + this.Chart.BarSpacing + this.Chart.HeaderOneHeight, this.Chart.GetSpan(this.Task.Duration), this.Chart.BarHeight);
             }
         }
         /// <summary>
@@ -82,11 +83,11 @@ namespace HotelSchedulerControl.Chart
         /// <summary>
         /// Get or set the formatting of the task
         /// </summary>
-        public TaskFormat Format { get; set; }
+        public ScheduleEventFormat Format { get; set; }
         /// <summary>
         /// Initialize a new instance of TaskPaintEventArgs with the editable default font and task paint format
         /// </summary>
-        public TaskPaintEventArgs(Graphics graphics, Rectangle clipRect, SchedulerControl chart, TimeBar task, int row, Font font, TaskFormat format) // need to create a paint event for each task for custom painting
+        public TaskPaintEventArgs(Graphics graphics, Rectangle clipRect, SchedulerControl chart, SchedulerEvent task, int row, Font font, ScheduleEventFormat format) // need to create a paint event for each task for custom painting
             : base(graphics, clipRect, chart)
         {
             this.Task = task;

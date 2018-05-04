@@ -1,4 +1,4 @@
-﻿namespace HotelSchedulerControl.Chart
+﻿namespace HotelSchedulerControl.Scheduler
 {
     partial class SchedulerControl
     {

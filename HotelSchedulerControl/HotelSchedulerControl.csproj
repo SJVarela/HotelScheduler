@@ -50,12 +50,13 @@
     <Compile Include="Chart\SchedulerControl.Designer.cs">
       <DependentUpon>SchedulerControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Chart\TimeBar.cs" />
-    <Compile Include="Chart\TaskFormat.cs" />
+    <Compile Include="Scheduler\SchedulerEvent.cs" />
+    <Compile Include="Scheduler\ScheduleEventFormat.cs" />
     <Compile Include="Chart\TaskMouseEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduler\IScheduler.cs" />
     <Compile Include="Scheduler\Scheduler.cs" />
+    <Compile Include="Scheduler\TaskScheduler.cs" />
     <Compile Include="ViewPort\ControlViewport.cs" />
     <Compile Include="ViewPort\IViewport.cs" />
   </ItemGroup>

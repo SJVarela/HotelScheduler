@@ -1,4 +1,4 @@
-﻿using HotelSchedulerControl.Chart;
+﻿using HotelSchedulerControl.Scheduler;
 using System;
 using System.Collections.Generic;
 
@@ -10,7 +10,7 @@ namespace HotelSchedulerControl.Scheduler
     /// <typeparam name="T">Task class type</typeparam>
     /// <typeparam name="R">Resource class type</typeparam>
     public interface IScheduler<T, R>
-        where T : TimeBar
+        where T : SchedulerEvent
         where R : class
     {
         /// <summary>
@@ -33,7 +33,7 @@ namespace HotelSchedulerControl.Scheduler
         /// Enumerate through all the tasks in the ProjectManager.
         /// If there are no change to groups and no add/delete tasks, the order between consecutive calls is preserved.
         /// </summary>
-        IEnumerable<T> Tasks { get; }
+        List<T> Tasks { get; }
         /// <summary>
         /// Set the start time of the specified task.
         /// </summary>

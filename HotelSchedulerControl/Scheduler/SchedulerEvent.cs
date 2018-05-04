@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 
-namespace HotelSchedulerControl.Chart
+namespace HotelSchedulerControl.Scheduler
 {
-    public class TimeBar
+    public class SchedulerEvent
     {
-        public TimeBar()
+        public SchedulerEvent()
         {
-            Start = TimeSpan.Zero;
-            End = new TimeSpan(1, 0, 0, 0);
-            Duration = new TimeSpan(1, 0, 0, 0);
+            Start = DateTime.Now;
+            End = Start;
             Slack = TimeSpan.Zero;
+            Row = -1;
         }
 
         /// <summary>
@@ -18,20 +19,21 @@ namespace HotelSchedulerControl.Chart
         /// </summary>
         public string Name { get; set; }
 
+        public int Row { get; set; }
         /// <summary>
         /// Get the start time of this Task relative to the project start
         /// </summary>
-        public TimeSpan Start { get; internal set; }
+        public DateTime Start { get; set; }
 
         /// <summary>
         /// Get the end time of this Task relative to the project start
         /// </summary>
-        public TimeSpan End { get; internal set; }
+        public DateTime End { get; set; }
 
         /// <summary>
         /// Get the duration of this Task in days
         /// </summary>
-        public TimeSpan Duration { get; internal set; }
+        public TimeSpan Duration { get { return End - Start; } }
 
         /// <summary>
         /// Get the amount of slack (free float)
@@ -41,13 +43,13 @@ namespace HotelSchedulerControl.Chart
         /// <summary>
         /// Format of the task
         /// </summary>
-        public TaskFormat Format { get; set; } = new TaskFormat()
+        public ScheduleEventFormat Format { get; set; } = new ScheduleEventFormat()
         {
             Color = Brushes.Black,
             Border = Pens.Maroon,
             BackFill = Brushes.MediumSlateBlue,
             ForeFill = Brushes.YellowGreen,
-            SlackFill = new System.Drawing.Drawing2D.HatchBrush(System.Drawing.Drawing2D.HatchStyle.LightDownwardDiagonal, Color.Blue, Color.Transparent)
+            SlackFill = new HatchBrush(HatchStyle.LightDownwardDiagonal, Color.Blue, Color.Transparent)
         };
 
         /// <summary>

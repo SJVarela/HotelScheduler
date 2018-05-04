@@ -1,5 +1,4 @@
-﻿using HotelSchedulerControl.Chart;
-using HotelSchedulerControl.Scheduler;
+﻿using HotelSchedulerControl.Scheduler;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,19 +12,16 @@ namespace TestForm
 {
     public partial class Form1 : Form
     {
-        private Scheduler projectManager = new Scheduler();
+        private TaskScheduler projectManager = new TaskScheduler();
         public Form1()
         {
             InitializeComponent();
             schedulerControl1.Init(projectManager);
-            projectManager.Start = DateTime.Now;
-
-            var task = new TimeBar() { Name = "Hello" };
+            projectManager.Start = DateTime.Now.AddDays(-3);
+            var task = new SchedulerEvent() { Name = "Hello" };
             projectManager.Add(task);
-            projectManager.SetStart(task, TimeSpan.FromDays(5));
-            projectManager.SetDuration(task, TimeSpan.FromDays(5));
-
-
+            projectManager.SetStart(task, DateTime.Now.AddDays(3));
+            projectManager.SetEnd(task, DateTime.Now.AddDays(5));
         }
     }
 }

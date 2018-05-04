@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace HotelSchedulerControl.Chart
+namespace HotelSchedulerControl.Scheduler
 {
     public class HeaderFormat
     {

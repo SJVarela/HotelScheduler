@@ -8,7 +8,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace HotelSchedulerControl.Chart
+namespace HotelSchedulerControl.Scheduler
 {
     public partial class SchedulerControl : UserControl
     {
@@ -70,6 +70,8 @@ namespace HotelSchedulerControl.Chart
         /// </summary>
         [DefaultValue(false)]
         public bool ShowSlack { get; set; }
+
+        public TaskScheduler Scheduler = null;
         #endregion
         #region Methods
 
@@ -105,9 +107,9 @@ namespace HotelSchedulerControl.Chart
         /// Initialize this Chart with a Project
         /// </summary>
         /// <param name="project"></param>
-        public void Init(Scheduler<TimeBar, object> project)
+        public void Init(TaskScheduler project)
         {
-            _mProject = project;
+            Scheduler = project;
             _GenerateModels();
         }
         /// <summary>
@@ -156,7 +158,7 @@ namespace HotelSchedulerControl.Chart
             graphics.Clear(Color.White);
 
             int row = 0;
-            if (_mProject != null)
+            if (Scheduler != null)
             {
                 // generate rectangles
                 _GenerateModels();
@@ -205,7 +207,7 @@ namespace HotelSchedulerControl.Chart
             __DrawScale(graphics, clipRect, e.Font, e.Format, info.LabelRects, info.DateTimes);
 
             // draw "Now" line
-            float xf = GetSpan(_mProject.Now);
+            float xf = GetSpan(Scheduler.Now);
             var pen = new Pen(e.Format.Border.Color) { DashStyle = DashStyle.Dash };
             graphics.DrawLine(pen, new PointF(xf, _mViewport.Y), new PointF(xf, _mViewport.Rectangle.Bottom));
         }
@@ -292,7 +294,7 @@ namespace HotelSchedulerControl.Chart
                 }
             }
         }
-        private void __DrawTaskParts(Graphics graphics, TaskPaintEventArgs e, TimeBar task, Pen pen)
+        private void __DrawTaskParts(Graphics graphics, TaskPaintEventArgs e, SchedulerEvent task, Pen pen)
         {
             var parts = _mChartTaskPartRects[task];
 
@@ -314,7 +316,7 @@ namespace HotelSchedulerControl.Chart
             // Draw border
             graphics.DrawRectangles(e.Format.Border, taskRects);
         }
-        private void __DrawRegularTaskAndGroup(Graphics graphics, TaskPaintEventArgs e, TimeBar task, RectangleF taskRect)
+        private void __DrawRegularTaskAndGroup(Graphics graphics, TaskPaintEventArgs e, SchedulerEvent task, RectangleF taskRect)
         {
             var fill = taskRect;
             fill.Width = (int)(fill.Width * 1);
@@ -407,7 +409,7 @@ namespace HotelSchedulerControl.Chart
             // loop over the tasks and pick up items
             var end = TimeSpan.MinValue;
             int row = 0;
-            foreach (var task in _mProject.Tasks)
+            foreach (var task in Scheduler.Tasks)
             {
                 if (true)
                 {
@@ -415,18 +417,18 @@ namespace HotelSchedulerControl.Chart
                     RectangleF taskRect;
 
                     // Compute task rectangle
-                    taskRect = new RectangleF(GetSpan(task.Start), y_coord, GetSpan(task.Duration), this.BarHeight);
+                    taskRect = new RectangleF(GetSpan(task.Start - Scheduler.Start), y_coord, GetSpan(task.Duration), this.BarHeight);
                     _mChartTaskRects.Add(task, taskRect); // also add groups and split tasks (not just task parts)
                     _mChartTaskHitRects.Add(task, taskRect);
                     // Compute Slack Rectangles
                     if (this.ShowSlack)
                     {
-                        var slackRect = new RectangleF(GetSpan(task.End), y_coord, GetSpan(task.Slack), this.BarHeight);
+                        var slackRect = new RectangleF(GetSpan(task.End - Scheduler.Start), y_coord, GetSpan(task.Slack), this.BarHeight);
                         _mChartSlackRects.Add(task, slackRect);
                     }
 
                     // Find maximum end time
-                    if (task.End > end) end = task.End;
+                    if ((task.End -Scheduler.Start) > end) end = task.End - Scheduler.Start;
 
                     row++;
                 }
@@ -479,11 +481,11 @@ namespace HotelSchedulerControl.Chart
             float vpTime = (int)(_mViewport.X / this.MinorWidth);
             if (this.TimeResolution == TimeResolution.Week)
             {
-                return _mProject.Start.AddDays(vpTime * 7);
+                return Scheduler.Start.AddDays(vpTime * 7);
             }
             else if (this.TimeResolution == TimeResolution.Day)
             {
-                return _mProject.Start.AddDays(vpTime);
+                return Scheduler.Start.AddDays(vpTime);
             }
             throw new NotImplementedException("Unable to determine TimeResolution.");
         }
@@ -522,21 +524,19 @@ namespace HotelSchedulerControl.Chart
             public List<RectangleF> Columns;
             public List<DateTime> DateTimes;
         }
-
-        Scheduler<TimeBar, object> _mProject = null; // The project to be visualised / rendered as a Gantt Chart
         IViewport _mViewport = null;
-        TimeBar _mDraggedTask = null; // The dragged source Task
+        SchedulerEvent _mDraggedTask = null; // The dragged source Task
         Point _mDragTaskLastLocation = Point.Empty; // Record the task dragging mouse offset
         Point _mDragTaskStartLocation = Point.Empty;
         Point _mPanViewLastLocation = Point.Empty;
-        List<TimeBar> _mSelectedTasks = new List<TimeBar>(); // List of selected tasks
-        Dictionary<TimeBar, RectangleF> _mChartTaskHitRects = new Dictionary<TimeBar, RectangleF>(); // list of hitareas for Task Rectangles
-        Dictionary<TimeBar, RectangleF> _mChartTaskRects = new Dictionary<TimeBar, RectangleF>();
-        Dictionary<TimeBar, List<KeyValuePair<TimeBar, RectangleF>>> _mChartTaskPartRects = new Dictionary<TimeBar, List<KeyValuePair<TimeBar, RectangleF>>>();
-        Dictionary<TimeBar, RectangleF> _mChartSlackRects = new Dictionary<TimeBar, RectangleF>();
+        List<SchedulerEvent> _mSelectedTasks = new List<SchedulerEvent>(); // List of selected tasks
+        Dictionary<SchedulerEvent, RectangleF> _mChartTaskHitRects = new Dictionary<SchedulerEvent, RectangleF>(); // list of hitareas for Task Rectangles
+        Dictionary<SchedulerEvent, RectangleF> _mChartTaskRects = new Dictionary<SchedulerEvent, RectangleF>();
+        Dictionary<SchedulerEvent, List<KeyValuePair<SchedulerEvent, RectangleF>>> _mChartTaskPartRects = new Dictionary<SchedulerEvent, List<KeyValuePair<SchedulerEvent, RectangleF>>>();
+        Dictionary<SchedulerEvent, RectangleF> _mChartSlackRects = new Dictionary<SchedulerEvent, RectangleF>();
         HeaderInfo _mHeaderInfo = new HeaderInfo();
-        TimeBar _mMouseEntered = null; // flag whether the mouse has entered a Task rectangle or not
-        Dictionary<TimeBar, string> _mTaskToolTip = new Dictionary<TimeBar, string>();
+        SchedulerEvent _mMouseEntered = null; // flag whether the mouse has entered a Task rectangle or not
+        Dictionary<SchedulerEvent, string> _mTaskToolTip = new Dictionary<SchedulerEvent, string>();
         #endregion Private Helper Variables
         #endregion
 
@@ -633,14 +633,14 @@ namespace HotelSchedulerControl.Chart
         /// <summary>
         /// Get or set the task
         /// </summary>
-        public TimeBar Task { get; set; }
+        public SchedulerEvent Task { get; set; }
         /// <summary>
         /// Construct a passive data structure to hold chart information
         /// </summary>
         /// <param name="row"></param>
         /// <param name="dateTime"></param>
         /// <param name="task"></param>
-        public ChartInfo(int row, DateTime dateTime, TimeBar task)
+        public ChartInfo(int row, DateTime dateTime, SchedulerEvent task)
             : this()
         {
             Row = row;
