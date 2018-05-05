@@ -32,8 +32,10 @@
             this.SuspendLayout();
             // 
             // schedulerControl1
-            //           
+            // 
+            this.schedulerControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.schedulerControl1.Location = new System.Drawing.Point(0, 0);
+            this.schedulerControl1.Margin = new System.Windows.Forms.Padding(0);
             this.schedulerControl1.Name = "schedulerControl1";
             this.schedulerControl1.Size = new System.Drawing.Size(800, 450);
             this.schedulerControl1.TabIndex = 0;

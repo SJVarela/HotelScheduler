@@ -1,4 +1,4 @@
-﻿using HotelSchedulerControl.Scheduler;
+﻿using HotelSchedulerControl.Chart;
 using HotelSchedulerControl.ViewPort;
 using System;
 using System.Collections.Generic;
@@ -14,64 +14,29 @@ namespace HotelSchedulerControl.Scheduler
     {
 
         #region Properties
-        /// <summary>
-        /// Get or set header1 pixel height
-        /// </summary>
         [DefaultValue(32)]
         public int HeaderOneHeight { get; set; }
-
-        /// <summary>
-        /// Get or set header2 pixel height
-        /// </summary>
         [DefaultValue(20)]
         public int HeaderTwoHeight { get; set; }
-
-        /// <summary>
-        /// Get or set pixel distance from top of each Task to the next
-        /// </summary>
         [DefaultValue(32)]
         public int BarSpacing { get; set; }
-
-        /// <summary>
-        /// Get or set pixel height of each Task
-        /// </summary>
         [DefaultValue(20)]
         public int BarHeight { get; set; }
-
-        /// <summary>
-        /// Get or set the time scale display format
-        /// </summary>
         [DefaultValue(TimeResolution.Day)]
         public TimeResolution TimeResolution { get; set; }
-
-        /// <summary>
-        /// Get or set the pixel width of each step of the time scale e.g. if TimeScale is TimeScale.Day, then each Day will be TimeWidth pixels apart
-        /// </summary>
         [DefaultValue(20)]
         public int MinorWidth { get; set; }
-
-        /// <summary>
-        /// Get or set pixel width between major tick marks.
-        /// </summary>
         [DefaultValue(140)]
         public int MajorWidth { get; set; }
-
-        /// <summary>
-        /// Get or set format for headers
-        /// </summary>
         public HeaderFormat HeaderFormat { get; set; }
-        /// <summary>
-        /// Get or set whether to show task labels
-        /// </summary>
         [DefaultValue(true)]
         public bool ShowTaskLabels { get; set; }
-        /// <summary>
-        /// Get or set whether to show slack
-        /// </summary>
-        [DefaultValue(false)]
+        [DefaultValue(true)]
         public bool ShowSlack { get; set; }
 
         public TaskScheduler Scheduler = null;
+        public ChartPainter ChartPainter = new ChartPainter();
+
         #endregion
         #region Methods
 
@@ -90,7 +55,7 @@ namespace HotelSchedulerControl.Scheduler
             this.DoubleBuffered = true;
             _mViewport = new ControlViewport(this) { WheelDelta = BarSpacing };
             //AllowTaskDragDrop = true;
-            ShowSlack = false;
+            ShowSlack = true;
             ShowTaskLabels = true;
             this.Dock = DockStyle.Fill;
             this.Margin = new Padding(0, 0, 0, 0);
@@ -153,10 +118,15 @@ namespace HotelSchedulerControl.Scheduler
         }
         #endregion
         #region Private
-        private void _Draw(Graphics graphics, Rectangle clipRect)
+
+        protected virtual void OnPaintHeader(HeaderPaintEventArgs e)
+        {
+            PaintHeader?.Invoke(this, e);
+        }
+
+        private void PaintChart(Graphics graphics, Rectangle clipRect)
         {
             graphics.Clear(Color.White);
-
             int row = 0;
             if (Scheduler != null)
             {
@@ -169,29 +139,15 @@ namespace HotelSchedulerControl.Scheduler
 
                 // draw columns in the background
                 _DrawColumns(graphics);
-                // draw predecessor arrows
-                //if (this.ShowRelations) this._DrawPredecessorLines(graphics);
                 // draw bar charts
                 row = this._DrawTasks(graphics, clipRect);
                 // draw the header
-                _DrawHeader(graphics, clipRect);
-                // Paint overlays
-                ChartPaintEventArgs paintargs = new ChartPaintEventArgs(graphics, clipRect, this);
-                //OnPaintOverlay(paintargs);
-                //_mOverlay.Paint(paintargs);
-            }
-            else
-            {
-                // nothing to draw
+                DrawHeader(graphics, clipRect);
             }
             // flush
             graphics.Flush();
         }
-        protected virtual void OnPaintHeader(HeaderPaintEventArgs e)
-        {
-            PaintHeader?.Invoke(this, e);
-        }
-        private void _DrawHeader(Graphics graphics, Rectangle clipRect)
+        private void DrawHeader(Graphics graphics, Rectangle clipRect)
         {
             var info = _mHeaderInfo;
             var viewRect = _mViewport.Rectangle;
@@ -199,7 +155,7 @@ namespace HotelSchedulerControl.Scheduler
             // Draw header backgrounds
             var e = new HeaderPaintEventArgs(graphics, clipRect, this, this.Font, this.HeaderFormat);
             OnPaintHeader(e);
-            var gradient = new System.Drawing.Drawing2D.LinearGradientBrush(info.H1Rect, e.Format.GradientLight, e.Format.GradientDark, System.Drawing.Drawing2D.LinearGradientMode.Vertical);
+            var gradient = new LinearGradientBrush(info.H1Rect, e.Format.GradientLight, e.Format.GradientDark, LinearGradientMode.Vertical);
             graphics.FillRectangles(gradient, new RectangleF[] { info.H1Rect, info.H2Rect });
             graphics.DrawRectangles(e.Format.Border, new RectangleF[] { info.H1Rect, info.H2Rect });
 
@@ -208,7 +164,7 @@ namespace HotelSchedulerControl.Scheduler
 
             // draw "Now" line
             float xf = GetSpan(Scheduler.Now);
-            var pen = new Pen(e.Format.Border.Color) { DashStyle = DashStyle.Dash };
+            var pen = new Pen(e.Format.Border.Color) { DashStyle = DashStyle.Dash, Color = Color.Red };
             graphics.DrawLine(pen, new PointF(xf, _mViewport.Y), new PointF(xf, _mViewport.Rectangle.Bottom));
         }
         private void ___GetLabelFormat(DateTime datetime, DateTime datetimeprev, out LabelFormat minor, out LabelFormat major)
@@ -228,16 +184,16 @@ namespace HotelSchedulerControl.Scheduler
                 //    if (datetime.Day != datetimeprev.Day) major.Text = datetime.ToString("dd MMM yyyy");
                 //    break;
                 default: // case TimeResolution.Day: -- to implement other TimeResolutions, add to this function or listen to the the PaintTimeline event
-                    minor.Text = ShortDays[datetime.DayOfWeek]; // datetime.ToString("dddd").Substring(0, 1).ToUpper();
-                    if (datetime.DayOfWeek == DayOfWeek.Sunday) major.Text = datetime.ToString("dd MMM yyyy");
+                    minor.Text = datetime.Day.ToString(); // datetime.ToString("dddd").Substring(0, 1).ToUpper();
+                    if (datetime.Day == 15) major.Text = datetime.ToString("MMM");
                     break;
             }
         }
         private void __DrawMarker(Graphics graphics, float offsetX, float offsetY)
         {
-            var marker = _Marker.Select(p => new PointF(p.X + offsetX, p.Y + offsetY)).ToArray();
-            graphics.FillPolygon(Brushes.LightGoldenrodYellow, marker);
-            graphics.DrawPolygon(new Pen(SystemColors.ButtonShadow), marker);
+            //var marker = _Marker.Select(p => new PointF(p.X + offsetX, p.Y + offsetY)).ToArray();
+            //graphics.FillPolygon(Brushes.LightGoldenrodYellow, marker);
+            //graphics.DrawPolygon(new Pen(SystemColors.ButtonShadow), marker);
         }
         private void __DrawScale(Graphics graphics, Rectangle clipRect, Font font, HeaderFormat headerformat, List<RectangleF> labelRects, List<DateTime> dates)
         {
@@ -323,25 +279,6 @@ namespace HotelSchedulerControl.Scheduler
             graphics.FillRectangle(e.Format.BackFill, taskRect);
             graphics.FillRectangle(e.Format.ForeFill, fill);
             graphics.DrawRectangle(e.Format.Border, taskRect);
-
-            // check if this is a parent task / group task, then draw the bracket
-            //var rod = new RectangleF(taskRect.Left, taskRect.Top, taskRect.Width, taskRect.Height / 2);
-            //graphics.FillRectangle(Brushes.Black, rod);
-
-            //if (!false)
-            //{
-            //    // left bracket
-            //    graphics.FillPolygon(Brushes.Black, new PointF[] {
-            //                    new PointF() { X = taskRect.Left, Y = taskRect.Top },
-            //                    new PointF() { X = taskRect.Left, Y = taskRect.Top + BarHeight },
-            //                    new PointF() { X = taskRect.Left + MinorWidth / 2f, Y = taskRect.Top } });
-            //    // right bracket
-            //    graphics.FillPolygon(Brushes.Black, new PointF[] {
-            //                    new PointF() { X = taskRect.Right, Y = taskRect.Top },
-            //                    new PointF() { X = taskRect.Right, Y = taskRect.Top + BarHeight },
-            //                    new PointF() { X = taskRect.Right - MinorWidth / 2f, Y = taskRect.Top } });
-            //}
-
         }
         private int _DrawTasks(Graphics graphics, Rectangle clipRect)
         {
@@ -379,17 +316,15 @@ namespace HotelSchedulerControl.Scheduler
                     }
 
                     // draw slack
-                    if (this.ShowSlack && 1 < 1.0f)
+                    if (this.ShowSlack)
                     {
                         var slackrect = _mChartSlackRects[task];
                         if (viewRect.IntersectsWith(slackrect))
                             graphics.FillRectangle(e.Format.SlackFill, slackrect);
                     }
                 }
-
                 row++;
             }
-
             return row;
         }
         /// <summary>
@@ -408,12 +343,12 @@ namespace HotelSchedulerControl.Scheduler
 
             // loop over the tasks and pick up items
             var end = TimeSpan.MinValue;
-            int row = 0;
+
             foreach (var task in Scheduler.Tasks)
             {
                 if (true)
                 {
-                    int y_coord = row * this.BarSpacing + this.HeaderTwoHeight + this.HeaderOneHeight + (this.BarSpacing - this.BarHeight) / 2;
+                    int y_coord = task.Row * this.BarSpacing + this.HeaderTwoHeight + this.HeaderOneHeight + (this.BarSpacing - this.BarHeight) / 2;
                     RectangleF taskRect;
 
                     // Compute task rectangle
@@ -426,15 +361,13 @@ namespace HotelSchedulerControl.Scheduler
                         var slackRect = new RectangleF(GetSpan(task.End - Scheduler.Start), y_coord, GetSpan(task.Slack), this.BarHeight);
                         _mChartSlackRects.Add(task, slackRect);
                     }
-
                     // Find maximum end time
-                    if ((task.End -Scheduler.Start) > end) end = task.End - Scheduler.Start;
-
-                    row++;
+                    if ((task.End - Scheduler.Start) > end) end = task.End - Scheduler.Start;
+                    
                 }
             }
-            row += 5;
-            _mViewport.WorldHeight = Math.Max(pHeight, row * this.BarSpacing + this.BarHeight);
+            //row += 5;
+            _mViewport.WorldHeight = Math.Max(pHeight, this.BarSpacing + this.BarHeight);
             _mViewport.WorldWidth = Math.Max(pWidth, GetSpan(end) + 200);
         }
         /// <summary>
@@ -491,19 +424,6 @@ namespace HotelSchedulerControl.Scheduler
         }
 
         #region Private Helper Variables'
-        /// <summary>
-        /// Printing labels for header
-        /// </summary>
-        private static readonly SortedDictionary<DayOfWeek, string> ShortDays = new SortedDictionary<DayOfWeek, string>
-        {
-            {DayOfWeek.Sunday, "Do"},
-            {DayOfWeek.Monday, "Lu"},
-            {DayOfWeek.Tuesday, "Ma"},
-            {DayOfWeek.Wednesday, "Mi"},
-            {DayOfWeek.Thursday, "Ju"},
-            {DayOfWeek.Friday, "Vi"},
-            {DayOfWeek.Saturday, "Sa"}
-        };
 
         /// <summary>
         /// Polygon points for Header markers
@@ -552,7 +472,7 @@ namespace HotelSchedulerControl.Scheduler
             base.OnPaint(e);
 
             if (!this.DesignMode)
-                this._Draw(e.Graphics, e.ClipRectangle);
+                this.PaintChart(e.Graphics, e.ClipRectangle);
         }
         protected virtual void OnPaintTimeline(TimelinePaintEventArgs e)
         {
