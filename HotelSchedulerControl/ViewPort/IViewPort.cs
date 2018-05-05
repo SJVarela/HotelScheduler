@@ -6,7 +6,7 @@ namespace HotelSchedulerControl.ViewPort
     /// <summary>
     /// IViewport moves in world coordinate and projects models to device coordinate space
     /// </summary>
-    interface IViewport
+    public interface IViewport
     {
         /// <summary>
         /// Get the projection matrix to transform world coordinates to device coordinates

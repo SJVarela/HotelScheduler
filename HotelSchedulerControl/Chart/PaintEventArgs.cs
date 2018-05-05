@@ -1,8 +1,9 @@
-﻿using System;
+﻿using HotelSchedulerControl.Scheduler;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace HotelSchedulerControl.Scheduler
+namespace HotelSchedulerControl.Chart
 {
     /// <summary>
     /// Provides data for ChartPaintEvent
@@ -60,15 +61,14 @@ namespace HotelSchedulerControl.Scheduler
         /// <summary>
         /// Get the task to be painted
         /// </summary>
-        public SchedulerEvent Task { get; private set; }
+        public ScheduleEvent Task { get; private set; }
         /// <summary>
         /// Get the rectangle bounds of the task
         /// </summary>
         public RectangleF Rectangle
         {
             get
-            {    
-                
+            {
                 return new RectangleF(Chart.GetSpan(this.Task.Start - Chart.Scheduler.Start), this.Row * this.Chart.BarSpacing + this.Chart.BarSpacing + this.Chart.HeaderOneHeight, this.Chart.GetSpan(this.Task.Duration), this.Chart.BarHeight);
             }
         }
@@ -87,7 +87,7 @@ namespace HotelSchedulerControl.Scheduler
         /// <summary>
         /// Initialize a new instance of TaskPaintEventArgs with the editable default font and task paint format
         /// </summary>
-        public TaskPaintEventArgs(Graphics graphics, Rectangle clipRect, SchedulerControl chart, SchedulerEvent task, int row, Font font, ScheduleEventFormat format) // need to create a paint event for each task for custom painting
+        public TaskPaintEventArgs(Graphics graphics, Rectangle clipRect, SchedulerControl chart, ScheduleEvent task, int row, Font font, ScheduleEventFormat format) // need to create a paint event for each task for custom painting
             : base(graphics, clipRect, chart)
         {
             this.Task = task;
@@ -113,13 +113,13 @@ namespace HotelSchedulerControl.Scheduler
         /// <summary>
         /// Get or set the label for the minor scale
         /// </summary>
-        LabelFormat Minor { get; set; }
+        HeaderLabel Minor { get; set; }
         /// <summary>
         /// Get or set the label for the major scale
         /// </summary>
-        LabelFormat Major { get; set; }
+        HeaderLabel Major { get; set; }
 
-        public TimelinePaintEventArgs(Graphics graphics, Rectangle clipRect, SchedulerControl chart, DateTime datetime, DateTime datetimeprev, LabelFormat minor, LabelFormat major)
+        public TimelinePaintEventArgs(Graphics graphics, Rectangle clipRect, SchedulerControl chart, DateTime datetime, DateTime datetimeprev, HeaderLabel minor, HeaderLabel major)
             : base(graphics, clipRect, chart)
         {
             Handled = false;

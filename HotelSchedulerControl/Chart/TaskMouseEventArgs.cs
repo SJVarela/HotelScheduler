@@ -1,7 +1,8 @@
-﻿using System.Drawing;
+﻿using HotelSchedulerControl.Scheduler;
+using System.Drawing;
 using System.Windows.Forms;
 
-namespace HotelSchedulerControl.Scheduler
+namespace HotelSchedulerControl.Chart
 {
 
     public class TaskMouseEventArgs : MouseEventArgs
@@ -9,7 +10,7 @@ namespace HotelSchedulerControl.Scheduler
         /// <summary>
         /// Subject Task of the event
         /// </summary>
-        public SchedulerEvent Task { get; private set; }
+        public ScheduleEvent Task { get; private set; }
         /// <summary>
         /// Rectangle bounds of the Task
         /// </summary>
@@ -17,7 +18,7 @@ namespace HotelSchedulerControl.Scheduler
         /// <summary>
         /// Initialize a new instance of TaskMouseEventArgs with the MouseEventArgs parameters and the Task involved.
         /// </summary>
-        public TaskMouseEventArgs(SchedulerEvent task, RectangleF rectangle, MouseButtons buttons, int clicks, int x, int y, int delta)
+        public TaskMouseEventArgs(ScheduleEvent task, RectangleF rectangle, MouseButtons buttons, int clicks, int x, int y, int delta)
             : base(buttons, clicks, x, y, delta)
         {
             this.Task = task;
@@ -40,11 +41,11 @@ namespace HotelSchedulerControl.Scheduler
         /// <summary>
         /// Get the source task that is being dragged
         /// </summary>
-        public SchedulerEvent Source { get; private set; }
+        public ScheduleEvent Source { get; private set; }
         /// <summary>
         /// Get the target task that is being dropped on
         /// </summary>
-        public SchedulerEvent Target { get; private set; }
+        public ScheduleEvent Target { get; private set; }
         /// <summary>
         /// Get the rectangle bounds of the source task in chart coordinates
         /// </summary>
@@ -60,7 +61,7 @@ namespace HotelSchedulerControl.Scheduler
         /// <summary>
         /// Initialize a new instance of TaskDragDropEventArgs with the MouseEventArgs parameters and the Task involved and the previous mouse location.
         /// </summary>
-        public TaskDragDropEventArgs(Point startLocation, Point prevLocation, SchedulerEvent source, RectangleF sourceRect, SchedulerEvent target, RectangleF targetRect, int row, MouseButtons buttons, int clicks, int x, int y, int delta)
+        public TaskDragDropEventArgs(Point startLocation, Point prevLocation, ScheduleEvent source, RectangleF sourceRect, ScheduleEvent target, RectangleF targetRect, int row, MouseButtons buttons, int clicks, int x, int y, int delta)
             : base(buttons, clicks, x, y, delta)
         {
             this.Source = source;

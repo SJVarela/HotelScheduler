@@ -4,9 +4,9 @@ using System.Drawing.Drawing2D;
 
 namespace HotelSchedulerControl.Scheduler
 {
-    public class SchedulerEvent
+    public class ScheduleEvent
     {
-        public SchedulerEvent(int row)
+        public ScheduleEvent(int row)
         {
             Start = DateTime.Now;
             End = Start;

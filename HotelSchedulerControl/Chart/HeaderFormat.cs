@@ -1,26 +1,25 @@
 ﻿using System.Drawing;
 
-namespace HotelSchedulerControl.Scheduler
+namespace HotelSchedulerControl.Chart
 {
     public class HeaderFormat
     {
-        /// <summary>
-        /// Font color
-        /// </summary>
         public Brush Color { get; set; }
-        /// <summary>
-        /// Border and line colors
-        /// </summary>
         public Pen Border { get; set; }
-        /// <summary>
-        /// Get or set the lighter color in the gradient
-        /// </summary>
         public Color GradientLight { get; set; }
-        /// <summary>
-        /// Get or set the darker color in the gradient
-        /// </summary>
         public Color GradientDark { get; set; }
+    }    
+    public class HeaderLabelFormat
+    {
+        public Font Font { get; set; }
+        public Brush Color { get; set; }
+        public ChartTextAlign TextAlign { get; set; }
+        public float Margin { get; set; }
     }
+    public class HeaderLabel
+    {        
+        public string Text { get; set; }
+        public HeaderLabelFormat Format { get; set; }
 
-
+    }
 }

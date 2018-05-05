@@ -42,28 +42,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Chart\ChartPainter.cs" />
+    <Compile Include="Chart\HeaderInfo.cs" />
+    <Compile Include="Chart\SchedulerModels.cs" />
+    <Compile Include="Chart\SchedulerPainter.cs" />
     <Compile Include="Chart\DateTimeHelper.cs" />
     <Compile Include="Chart\HeaderFormat.cs" />
     <Compile Include="Chart\PaintEventArgs.cs" />
-    <Compile Include="Chart\SchedulerControl.cs">
+    <Compile Include="Chart\SchedulerModelGenerator.cs" />
+    <Compile Include="SchedulerControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Chart\SchedulerControl.Designer.cs">
+    <Compile Include="SchedulerControl.Designer.cs">
       <DependentUpon>SchedulerControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="Scheduler\SchedulerEvent.cs" />
+    <Compile Include="Scheduler\ScheduleEvent.cs" />
     <Compile Include="Scheduler\ScheduleEventFormat.cs" />
     <Compile Include="Chart\TaskMouseEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scheduler\IScheduler.cs" />
-    <Compile Include="Scheduler\Scheduler.cs" />
-    <Compile Include="Scheduler\TaskScheduler.cs" />
+    <Compile Include="Scheduler\EventSchedule.cs" />
     <Compile Include="ViewPort\ControlViewport.cs" />
     <Compile Include="ViewPort\IViewport.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Chart\ColumnHeader\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

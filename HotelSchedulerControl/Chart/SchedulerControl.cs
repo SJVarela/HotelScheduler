@@ -1,4 +1,5 @@
 ﻿using HotelSchedulerControl.Chart;
+using HotelSchedulerControl.Scheduler;
 using HotelSchedulerControl.ViewPort;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace HotelSchedulerControl.Scheduler
+namespace HotelSchedulerControl.Chart
 {
     public partial class SchedulerControl : UserControl
     {
@@ -28,23 +29,26 @@ namespace HotelSchedulerControl.Scheduler
         public int MinorWidth { get; set; }
         [DefaultValue(140)]
         public int MajorWidth { get; set; }
+        public HeaderLabelFormat MajorLabelFormat { get; set; }
+        public HeaderLabelFormat MinorLabelFormat { get; set; }
         public HeaderFormat HeaderFormat { get; set; }
         [DefaultValue(true)]
         public bool ShowTaskLabels { get; set; }
         [DefaultValue(true)]
         public bool ShowSlack { get; set; }
 
-        public TaskScheduler Scheduler = null;
-        public ChartPainter ChartPainter = new ChartPainter();
+
+        public EventSchedule Scheduler = null;
+
+        private SchedulerModelGenerator modelGenerator;
+        private SchedulerPainter painter;
 
         #endregion
         #region Methods
-
         #region Public
         public SchedulerControl()
         {
             InitializeComponent();
-
             HeaderOneHeight = 32;
             HeaderTwoHeight = 20;
             BarSpacing = 32;
@@ -67,14 +71,29 @@ namespace HotelSchedulerControl.Scheduler
                 GradientLight = SystemColors.ButtonHighlight,
                 GradientDark = SystemColors.ButtonFace
             };
+            MajorLabelFormat = new HeaderLabelFormat()
+            {
+                Font = Font,
+                Color = HeaderFormat.Color,
+                Margin = 3,
+                TextAlign = ChartTextAlign.MiddleCenter
+            };
+            MinorLabelFormat = new HeaderLabelFormat()
+            {
+                Font = Font,
+                Color = HeaderFormat.Color,
+                Margin = 3,
+                TextAlign = ChartTextAlign.MiddleCenter
+            };
         }
+
         /// <summary>
         /// Initialize this Chart with a Project
         /// </summary>
         /// <param name="project"></param>
-        public void Init(TaskScheduler project)
+        public void Init(EventSchedule scheduler)
         {
-            Scheduler = project;
+            Scheduler = scheduler;
             _GenerateModels();
         }
         /// <summary>
@@ -115,6 +134,12 @@ namespace HotelSchedulerControl.Scheduler
                     break;
             }
             return span;
+        }
+
+        public void GenerateModels()
+        {
+            modelGenerator.GenerateEventModels();
+            modelGenerator.GenerateHeaders();
         }
         #endregion
         #region Private
@@ -206,7 +231,7 @@ namespace HotelSchedulerControl.Scheduler
                 // https://blog.nicholasrogoff.com/2012/05/05/c-datetime-tostring-formats-quick-reference/
                 datetime = dates[i];
                 ___GetLabelFormat(datetime, datetimeprev, out LabelFormat minor, out LabelFormat major);
-                e = new TimelinePaintEventArgs(graphics, clipRect, this, datetime, datetimeprev, minor, major);
+                //e = new TimelinePaintEventArgs(graphics, clipRect, this, datetime, datetimeprev, minor, major);
                 OnPaintTimeline(e);
 
                 // Draw the label if not already handled by the user
@@ -250,7 +275,7 @@ namespace HotelSchedulerControl.Scheduler
                 }
             }
         }
-        private void __DrawTaskParts(Graphics graphics, TaskPaintEventArgs e, SchedulerEvent task, Pen pen)
+        private void __DrawTaskParts(Graphics graphics, TaskPaintEventArgs e, ScheduleEvent task, Pen pen)
         {
             var parts = _mChartTaskPartRects[task];
 
@@ -272,7 +297,7 @@ namespace HotelSchedulerControl.Scheduler
             // Draw border
             graphics.DrawRectangles(e.Format.Border, taskRects);
         }
-        private void __DrawRegularTaskAndGroup(Graphics graphics, TaskPaintEventArgs e, SchedulerEvent task, RectangleF taskRect)
+        private void __DrawRegularTaskAndGroup(Graphics graphics, TaskPaintEventArgs e, ScheduleEvent task, RectangleF taskRect)
         {
             var fill = taskRect;
             fill.Width = (int)(fill.Width * 1);
@@ -363,7 +388,7 @@ namespace HotelSchedulerControl.Scheduler
                     }
                     // Find maximum end time
                     if ((task.End - Scheduler.Start) > end) end = task.End - Scheduler.Start;
-                    
+
                 }
             }
             //row += 5;
@@ -436,27 +461,19 @@ namespace HotelSchedulerControl.Scheduler
             new PointF(-4f, 4)
         };
 
-        class HeaderInfo
-        {
-            public RectangleF H1Rect;
-            public RectangleF H2Rect;
-            public List<RectangleF> LabelRects;
-            public List<RectangleF> Columns;
-            public List<DateTime> DateTimes;
-        }
         IViewport _mViewport = null;
-        SchedulerEvent _mDraggedTask = null; // The dragged source Task
+        ScheduleEvent _mDraggedTask = null; // The dragged source Task
         Point _mDragTaskLastLocation = Point.Empty; // Record the task dragging mouse offset
         Point _mDragTaskStartLocation = Point.Empty;
         Point _mPanViewLastLocation = Point.Empty;
-        List<SchedulerEvent> _mSelectedTasks = new List<SchedulerEvent>(); // List of selected tasks
-        Dictionary<SchedulerEvent, RectangleF> _mChartTaskHitRects = new Dictionary<SchedulerEvent, RectangleF>(); // list of hitareas for Task Rectangles
-        Dictionary<SchedulerEvent, RectangleF> _mChartTaskRects = new Dictionary<SchedulerEvent, RectangleF>();
-        Dictionary<SchedulerEvent, List<KeyValuePair<SchedulerEvent, RectangleF>>> _mChartTaskPartRects = new Dictionary<SchedulerEvent, List<KeyValuePair<SchedulerEvent, RectangleF>>>();
-        Dictionary<SchedulerEvent, RectangleF> _mChartSlackRects = new Dictionary<SchedulerEvent, RectangleF>();
+        List<ScheduleEvent> _mSelectedTasks = new List<ScheduleEvent>(); // List of selected tasks
+        Dictionary<ScheduleEvent, RectangleF> _mChartTaskHitRects = new Dictionary<ScheduleEvent, RectangleF>(); // list of hitareas for Task Rectangles
+        Dictionary<ScheduleEvent, RectangleF> _mChartTaskRects = new Dictionary<ScheduleEvent, RectangleF>();
+        Dictionary<ScheduleEvent, List<KeyValuePair<ScheduleEvent, RectangleF>>> _mChartTaskPartRects = new Dictionary<ScheduleEvent, List<KeyValuePair<ScheduleEvent, RectangleF>>>();
+        Dictionary<ScheduleEvent, RectangleF> _mChartSlackRects = new Dictionary<ScheduleEvent, RectangleF>();
         HeaderInfo _mHeaderInfo = new HeaderInfo();
-        SchedulerEvent _mMouseEntered = null; // flag whether the mouse has entered a Task rectangle or not
-        Dictionary<SchedulerEvent, string> _mTaskToolTip = new Dictionary<SchedulerEvent, string>();
+        ScheduleEvent _mMouseEntered = null; // flag whether the mouse has entered a Task rectangle or not
+        Dictionary<ScheduleEvent, string> _mTaskToolTip = new Dictionary<ScheduleEvent, string>();
         #endregion Private Helper Variables
         #endregion
 
@@ -553,14 +570,14 @@ namespace HotelSchedulerControl.Scheduler
         /// <summary>
         /// Get or set the task
         /// </summary>
-        public SchedulerEvent Task { get; set; }
+        public ScheduleEvent Task { get; set; }
         /// <summary>
         /// Construct a passive data structure to hold chart information
         /// </summary>
         /// <param name="row"></param>
         /// <param name="dateTime"></param>
         /// <param name="task"></param>
-        public ChartInfo(int row, DateTime dateTime, SchedulerEvent task)
+        public ChartInfo(int row, DateTime dateTime, ScheduleEvent task)
             : this()
         {
             Row = row;
@@ -580,12 +597,12 @@ namespace HotelSchedulerControl.Scheduler
         public int Index { get; set; }
         public DateTime DateTime { get; set; }
     }
-    public enum ChartTextAlign
-    {
-        TopLeft, TopCenter, TopRight,
-        MiddleLeft, MiddleCenter, MiddleRight,
-        BottomLeft, BottomCenter, BottomRight
-    }
+    //public enum ChartTextAlign
+    //{
+    //    TopLeft, TopCenter, TopRight,
+    //    MiddleLeft, MiddleCenter, MiddleRight,
+    //    BottomLeft, BottomCenter, BottomRight
+    //}
     public class LabelFormat
     {
         public string Text;
@@ -595,12 +612,12 @@ namespace HotelSchedulerControl.Scheduler
         public float Margin;
     }
     #endregion
-    public enum TimeResolution
-    {
-        Day,
-        Week,
-        Month
-    }
+    //public enum TimeResolution
+    //{
+    //    Day,
+    //    Week,
+    //    Month
+    //}
 
     static class GDIExtention
     {
@@ -612,17 +629,15 @@ namespace HotelSchedulerControl.Scheduler
         public static RectangleF TextBoxAlign(this Graphics graphics, string text, ChartTextAlign align, Font font, RectangleF textbox, float margin = 0)
         {
             var size = graphics.MeasureString(text, font);
-            if (align == ChartTextAlign.MiddleCenter)
+            switch (align)
             {
-                return new RectangleF(new PointF(textbox.Left + (textbox.Width - size.Width) / 2, textbox.Top + (textbox.Height - size.Height) / 2), size);
-            }
-            else if (align == ChartTextAlign.MiddleLeft)
-            {
-                return new RectangleF(new PointF(textbox.Left + margin, textbox.Top + (textbox.Height - size.Height) / 2), size);
-            }
-            else
-            {
-                throw new NotImplementedException("Need to implement more alignment types");
+                case ChartTextAlign.MiddleCenter:
+                    return new RectangleF(new PointF(textbox.Left + (textbox.Width - size.Width) / 2, textbox.Top + (textbox.Height - size.Height) / 2), size);
+                case ChartTextAlign.MiddleLeft:
+                    return new RectangleF(new PointF(textbox.Left + margin, textbox.Top + (textbox.Height - size.Height) / 2), size);
+                default:
+                    return new RectangleF(new PointF(textbox.Left + (textbox.Width - size.Width) / 2, textbox.Top + (textbox.Height - size.Height) / 2), size);
+
             }
         }
     }
